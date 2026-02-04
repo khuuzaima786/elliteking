@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#075E54">
+    <title>Elite Walk POS - Upgraded</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root { 
+            --wa-green: #075E54; 
+            --wa-light: #25D366; 
+            --bg-gray: #f0f2f5;
+            --white: #ffffff;
+            --text-dark: #111b21;
+            --danger: #d32f2f;
+        }
+
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg-gray); margin: 0; padding: 0; }
+
+        .header {
+            background: var(--wa-green); color: white; padding: 15px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .branding-text { font-size: 10px; opacity: 0.8; display: block; }
+        .app-container { max-width: 600px; margin: auto; padding: 15px; }
+        .card { background: var(--white); padding: 20px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .input-group { position: relative; margin-bottom: 12px; }
+        input, select { background: #fff; border: 1px solid #ddd; padding: 12px; border-radius: 8px; width: 100%; box-sizing: border-box; font-size: 16px; }
+        .toggle-pass { position: absolute; right: 15px; top: 14px; cursor: pointer; color: #666; }
+        .btn { cursor: pointer; border: none; padding: 14px; border-radius: 8px; font-weight: 600; width: 100%; font-size: 15px; margin-top: 5px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-main { background: var(--wa-green); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-success { background: var(--wa-light); color: white; }
+        .btn-sm { padding: 5px 10px; font-size: 12px; width: auto; margin: 0; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .hidden { display: none !important; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #f8f9fa; padding: 10px; text-align: left; font-size: 12px; }
+        td { padding: 10px; border-top: 1px solid #eee; font-size: 13px; }
+        .loss-text { color: var(--danger) !important; }
+        #jugan-tag { text-align: center; font-size: 12px; color: #888; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<div id="loginScreen">
+    <div style="text-align: center; padding: 60px 20px; background: var(--wa-green); color: white;">
+        <i class="fas fa-walking" style="font-size: 60px;"></i>
+        <h1 style="margin:10px 0 0 0;">Elite Walk POS</h1>
+        <span style="font-size: 12px;">Design by Jugan Sial</span>
+    </div>
+    <div class="app-container" style="margin-top: -30px;">
+        <div class="card">
+            <div class="input-group">
+                <input type="password" id="passInput" placeholder="Enter Access PIN">
+                <i class="fas fa-eye toggle-pass" onclick="togglePassword('passInput')"></i>
+            </div>
+            <button class="btn btn-main" onclick="handleLogin()">LOGIN</button>
+        </div>
+    </div>
+</div>
+
+<div id="appBody" class="hidden">
+    <div class="header">
+        <div>
+            <span style="font-weight: bold; display: block;">ELITE WALK</span>
+            <span class="branding-text">By Jugan Sial</span>
+        </div>
+        <div>
+            <i class="fas fa-sign-out-alt" onclick="logout()" title="Logout" style="margin-right: 15px; cursor: pointer;"></i>
+            <i class="fas fa-sync" onclick="location.reload()" title="Refresh" style="cursor: pointer;"></i>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <div id="statsRow" class="grid hidden">
+            <div class="card" style="border-left: 5px solid var(--wa-green);">
+                <small>Sales Today</small>
+                <div id="statSale" style="font-size: 18px; font-weight: bold; color: var(--wa-green);">0</div>
+            </div>
+            <div class="card" style="border-left: 5px solid #2196F3;">
+                <small>Total Profit</small>
+                <div id="statProfit" style="font-size: 18px; font-weight: bold;">0</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3><i class="fas fa-cart-plus"></i> New Sale</h3>
+            <input type="text" id="artSearch" placeholder="Article # (Scan)" oninput="searchProduct()" style="border: 2px solid var(--wa-green);">
+            <div class="grid" style="margin-top:10px">
+                <input type="text" id="resName" readonly placeholder="Name">
+                <input type="text" id="resColor" readonly placeholder="Color">
+            </div>
+            <div class="grid">
+                <input type="text" id="resSize" placeholder="Size">
+                <input type="number" id="sellQty" value="1" placeholder="Qty">
+            </div>
+            <div class="grid">
+                <input type="number" id="sellPrice" placeholder="Price">
+                <input type="number" id="sellDisc" placeholder="Discount Rs." value="0">
+            </div>
+            <button class="btn btn-main" onclick="completeSale()">DONE & SAVE</button>
+        </div>
+
+        <div id="inventorySec" class="hidden">
+            <div class="card">
+                <h3><i class="fas fa-plus-circle"></i> Stock Management</h3>
+                <input type="text" id="addArt" placeholder="Article Number">
+                <input type="text" id="addName" placeholder="Item Name">
+                <div class="grid">
+                    <input type="text" id="addColor" placeholder="Color">
+                    <input type="text" id="addSize" placeholder="Size">
+                </div>
+                <div class="grid">
+                    <input type="number" id="addCost" placeholder="Cost Price">
+                    <input type="number" id="addPrice" placeholder="Sale Price">
+                </div>
+                <input type="number" id="addQty" placeholder="Quantity">
+                <button class="btn btn-success" onclick="addToStock()">ADD TO STOCK</button>
+                <button class="btn btn-danger" onclick="clearStock()" style="margin-top: 10px;">
+                    <i class="fas fa-trash"></i> CLEAR ALL STOCK
+                </button>
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-tools"></i> Admin Settings</h3>
+                <label><small>Change Admin/Staff Password:</small></label>
+                <select id="userToChange" style="margin-bottom: 10px;">
+                    <option value="owner">Owner PIN</option>
+                    <option value="staff">Staff PIN</option>
+                    <option value="special">Special Code</option>
+                </select>
+                <input type="text" id="newPass" placeholder="Enter New Password">
+                <button class="btn btn-main" onclick="changePassword()" style="margin-top: 10px;">UPDATE PIN</button>
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-history"></i> Current Inventory</h3>
+                <div id="stockTable" style="overflow-x: auto;"></div>
+            </div>
+        </div>
+
+        <div id="staffAuth" class="hidden card">
+            <div class="input-group">
+                <input type="password" id="staffExtraCode" placeholder="Enter Special Code for Stats" oninput="checkStaffCode(this.value)">
+                <i class="fas fa-eye-slash toggle-pass" onclick="togglePassword('staffExtraCode')"></i>
+            </div>
+        </div>
+
+        <div id="jugan-tag">App Design & Developed by Jugan Sial</div>
+    </div>
+</div>
+
+<script>
+    let CONFIG = {
+        keys: JSON.parse(localStorage.getItem('ew_keys')) || { owner: "elite99", staff: "elite123", master: "khuuzaima786", special: "0333" },
+        stock: JSON.parse(localStorage.getItem('ew_stock')) || {},
+        sales: parseFloat(localStorage.getItem('ew_sales')) || 0,
+        profit: parseFloat(localStorage.getItem('ew_profit')) || 0,
+        currentRole: null
+    };
+
+    function togglePassword(id) {
+        const x = document.getElementById(id);
+        x.type = x.type === "password" ? "text" : "password";
+    }
+
+    function handleLogin() {
+        const pin = document.getElementById('passInput').value;
+        if(pin === CONFIG.keys.master || pin === CONFIG.keys.owner) {
+            CONFIG.currentRole = 'admin';
+            setupUI(true);
+        } else if (pin === CONFIG.keys.staff) {
+            CONFIG.currentRole = 'staff';
+            setupUI(false);
+        } else {
+            alert("Ghalat Password!");
+        }
+    }
+
+    function logout() {
+        // Simple UI hide/show instead of reload to keep session logic if needed
+        document.getElementById('loginScreen').classList.remove('hidden');
+        document.getElementById('appBody').classList.add('hidden');
+        document.getElementById('passInput').value = "";
+    }
+
+    function setupUI(isAdmin) {
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('appBody').classList.remove('hidden');
+        
+        if(isAdmin) {
+            document.getElementById('statsRow').classList.remove('hidden');
+            document.getElementById('inventorySec').classList.remove('hidden');
+            document.getElementById('staffAuth').classList.add('hidden');
+        } else {
+            // If staff, hide stats unless already unlocked by special code in this session
+            document.getElementById('inventorySec').classList.add('hidden');
+            document.getElementById('staffAuth').classList.remove('hidden');
+            document.getElementById('statsRow').classList.add('hidden');
+        }
+        renderStock();
+        updateDisplayStats();
+    }
+
+    function checkStaffCode(val) {
+        if(val === CONFIG.keys.special) {
+            document.getElementById('statsRow').classList.remove('hidden');
+            document.getElementById('staffAuth').classList.add('hidden');
+        }
+    }
+
+    function searchProduct() {
+        const art = document.getElementById('artSearch').value.toUpperCase();
+        const item = CONFIG.stock[art];
+        if(item) {
+            document.getElementById('resName').value = item.name;
+            document.getElementById('resColor').value = item.color || "-";
+            document.getElementById('sellPrice').value = item.price;
+            document.getElementById('resSize').value = item.size;
+        }
+    }
+
+    function completeSale() {
+        const art = document.getElementById('artSearch').value.toUpperCase();
+        const qty = parseInt(document.getElementById('sellQty').value);
+        const disc = parseFloat(document.getElementById('sellDisc').value) || 0;
+        const item = CONFIG.stock[art];
+
+        if(item && item.qty >= qty) {
+            item.qty -= qty;
+            const finalPrice = parseFloat(document.getElementById('sellPrice').value) - (disc/qty);
+            const totalSale = finalPrice * qty;
+            const totalProfit = (finalPrice - item.cost) * qty;
+
+            CONFIG.sales += totalSale;
+            CONFIG.profit += totalProfit;
+            
+            saveData();
+            alert("Sale Saved Successfully!");
+            resetSaleFields();
+            renderStock();
+        } else {
+            alert("Error: Out of stock or Item not found!");
+        }
+    }
+
+    function addToStock() {
+        const art = document.getElementById('addArt').value.toUpperCase();
+        if(!art) return alert("Article required!");
+        
+        CONFIG.stock[art] = {
+            name: document.getElementById('addName').value,
+            color: document.getElementById('addColor').value,
+            cost: parseFloat(document.getElementById('addCost').value) || 0,
+            price: parseFloat(document.getElementById('addPrice').value) || 0,
+            size: document.getElementById('addSize').value,
+            qty: parseInt(document.getElementById('addQty').value) || 0
+        };
+        saveData();
+        renderStock();
+        alert("Stock Added!");
+        ['addArt','addName','addColor','addSize','addCost','addPrice','addQty'].forEach(id => document.getElementById(id).value = "");
+    }
+
+    function deleteItem(art) {
+        if(confirm(`Delete article ${art}?`)) {
+            delete CONFIG.stock[art];
+            saveData();
+            renderStock();
+        }
+    }
+
+    function clearStock() {
+        if(confirm("Kya aap waqai sara stock delete krna chahty hain?")) {
+            CONFIG.stock = {};
+            saveData();
+            renderStock();
+        }
+    }
+
+    function changePassword() {
+        const user = document.getElementById('userToChange').value;
+        const newP = document.getElementById('newPass').value;
+        if(newP.length < 3) return alert("Password too short!");
+        
+        CONFIG.keys[user] = newP;
+        localStorage.setItem('ew_keys', JSON.stringify(CONFIG.keys));
+        alert("Password updated for " + user);
+        document.getElementById('newPass').value = "";
+    }
+
+    function saveData() {
+        localStorage.setItem('ew_stock', JSON.stringify(CONFIG.stock));
+        localStorage.setItem('ew_sales', CONFIG.sales);
+        localStorage.setItem('ew_profit', CONFIG.profit);
+        updateDisplayStats();
+    }
+
+    function updateDisplayStats() {
+        document.getElementById('statSale').innerText = "Rs. " + CONFIG.sales.toLocaleString();
+        const profEl = document.getElementById('statProfit');
+        profEl.innerText = "Rs. " + CONFIG.profit.toLocaleString();
+        if(CONFIG.profit < 0) profEl.classList.add('loss-text');
+        else profEl.classList.remove('loss-text');
+    }
+
+    function renderStock() {
+        let html = `<table><tr><th>Item/Color</th><th>Qty</th><th>Price</th><th>Action</th></tr>`;
+        for(let key in CONFIG.stock) {
+            let item = CONFIG.stock[key];
+            html += `<tr>
+                <td><b>${key}</b><br><small>${item.name} (${item.color || '-'})</small></td>
+                <td>${item.qty}</td>
+                <td>${item.price}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="deleteItem('${key}')"><i class="fas fa-trash"></i></button></td>
+            </tr>`;
+        }
+        document.getElementById('stockTable').innerHTML = html + `</table>`;
+    }
+
+    function resetSaleFields() {
+        ['artSearch','resName','resSize','sellPrice','resColor','sellDisc'].forEach(id => document.getElementById(id).value = "");
+        document.getElementById('sellQty').value = 1;
+    }
+</script>
+</body>
+</html>
